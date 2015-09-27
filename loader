@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# https://shopify.github.io/dashing/
+
+set -euo pipefail
+
+cd /
+if [ ! -f "/dashboard/Gemfile" ]; then
+
+	echo "Creating new dashboard"
+
+	dashing new dashboard
+
+	cd dashboard
+	echo "" >> Gemfile
+	echo "gem 'dashing-contrib', '~> 0.1.6'" >> Gemfile
+	sed -i "1i\$: << File.expand_path('./lib', File.dirname(__FILE__))" config.ru
+	sed -i "2irequire 'dashing-contrib'" config.ru
+	sed -i "4iDashingContrib.configure" config.ru
+
+	sed -i '7i#=require dashing-contrib/assets/widgets' assets/javascripts/application.coffee
+	sed -i '4i//=require dashing-contrib/assets/widgets' assets/stylesheets/application.scss
+
+fi
+
+cd /dashboard
+
+bundle
+exec /usr/local/bin/dashing "$@"
